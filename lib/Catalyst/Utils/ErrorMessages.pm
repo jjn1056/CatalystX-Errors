@@ -301,6 +301,31 @@ sub get_message_info {
 
 1;
 
-__END__
+=head1 TITLE
 
-https://github.com/HttpErrorPages/HttpErrorPages/blob/master/i18n/pages-es_VE.json
+Catalyst::Utils::ErrorMessages - HTTP error message data in various languages
+
+=head1 SYNOPSIS
+
+  use Catalyst::Utils::ErrorMessages
+
+=head1 DESCRIPTION
+
+Not really intended for end user use at this point so see source if you want more
+info.
+
+Feel free to send me PRs with additional HTTP error codes and translations.
+
+=head1 SEE ALSO
+ 
+L<CatalystX::Errors>.
+
+=head1 AUTHOR
+ 
+L<CatalystX::Errors>.
+    
+=head1 COPYRIGHT & LICENSE
+ 
+L<CatalystX::Errors>.
+
+=cut

@@ -24,6 +24,7 @@ my $normalize_args = sub {
 sub finalize_error_args {
   my ($c, $code, %args) = @_;
   return (
+    code => $code,
     template => $code,
     uri => "@{[ $c->req->uri ]}",
     %args );
@@ -92,3 +93,29 @@ sub detach_error {
 }
 
 __PACKAGE__->meta->make_immutable;
+
+=head1 TITLE
+
+Catalyst::Plugin::Errors - Standard error responses with content negotiation
+
+=head1 SYNOPSIS
+
+
+
+=head1 DESCRIPTION
+
+
+
+=head1 SEE ALSO
+ 
+L<CatalystX::Errors>.
+
+=head1 AUTHOR
+ 
+L<CatalystX::Errors>.
+    
+=head1 COPYRIGHT & LICENSE
+ 
+L<CatalystX::Errors>.
+
+=cut

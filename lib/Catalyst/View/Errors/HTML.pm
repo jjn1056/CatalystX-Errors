@@ -20,7 +20,7 @@ has template_engine_args => (
   },
 );
 
-has template_name => (is=>'ro', required=>1, default=>'http_errors.tmpl');
+has template_name => (is=>'ro', required=>1, default=>'http_errors_html.tmpl');
 has default_language => (is=>'ro', required=>1, default=>'en_US');
 
 sub html {
@@ -34,7 +34,7 @@ sub html {
     <title>{$title}</title>
 </head>
 <body>
-    <div class="cover"><h1>{$title} <small>{$code}</small></h1><p class="lead">{$message}</p></div>
+    <div class="cover"><h1>{$code}: {$title}</h1><p class="lead">{$message}</p></div>
 </body>
 </html>
   ];
@@ -74,7 +74,10 @@ sub http_default {
 
 sub get_language {
   my ($self, $c) = @_;
-  return $self->cn->choose_language([$self->available_languages($c)], $c->request->header('Accept-Language')) || $self->default_language;
+  if(my $lang = $c->request->header('Accept-Language')) {
+    return $self->cn->choose_language([$self->available_languages($c)], $lang) || $self->default_language;
+  }
+  return $self->default_language;
 }
 
 sub available_languages {
@@ -103,3 +106,25 @@ sub render_template {
 }
 
 __PACKAGE__->meta->make_immutable;
+
+=head1 TITLE
+
+Catalyst::View::Errors::HTML - Standard HTTP Errors Responses in HTML
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 SEE ALSO
+ 
+L<CatalystX::Errors>.
+
+=head1 AUTHOR
+ 
+L<CatalystX::Errors>.
+    
+=head1 COPYRIGHT & LICENSE
+ 
+L<CatalystX::Errors>.
+
+=cut
