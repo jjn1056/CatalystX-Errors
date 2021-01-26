@@ -5,7 +5,6 @@ use MRO::Compat;
 use HTTP::Headers::ActionPack;
 use Catalyst::Utils;
 
-our $VERSION = '0.001';
 our %DEFAULT_ERROR_VIEWS = (
   'text/html'   => 'Errors::HTML',
   'text/plain'  => 'Errors::Text',

@@ -39,7 +39,6 @@ sub html {
   ];
 }
 
-
 has template_engine => (
   is => 'ro',
   required => 1,
