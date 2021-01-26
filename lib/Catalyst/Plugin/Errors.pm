@@ -2,7 +2,7 @@ package Catalyst::Plugin::Errors;
 
 use Moose;
 use MRO::Compat;
-use HTTP::Headers::ActionPack;
+use Catalyst::Utils::ContentNegotiation;
 use Catalyst::Utils;
 
 our %DEFAULT_ERROR_VIEWS = (
@@ -11,7 +11,6 @@ our %DEFAULT_ERROR_VIEWS = (
   'application/json' => 'Errors::JSON',
 );
 
-my $cn = HTTP::Headers::ActionPack->new->get_content_negotiator;
 my %views = %DEFAULT_ERROR_VIEWS;
 my @accepted = ();
 my $default_media_type = 'text/plain';
@@ -68,7 +67,10 @@ sub dispatch_error {
   my ($c, $code, @args) = @_;
 
   my %args = $c->finalize_error_args($code, $c->$normalize_args(@args));
-  my $chosen_media_type = $cn->choose_media_type(\@accepted, $c->request->header('Accept')) ||  $default_media_type;
+  my $chosen_media_type = Catalyst::Utils::ContentNegotiation::content_negotiator
+    ->choose_media_type(\@accepted, $c->request->header('Accept'))
+    ||  $default_media_type;
+
   my $chosen_view = $views{$chosen_media_type};
   my $view_obj = $c->view($chosen_view);
 

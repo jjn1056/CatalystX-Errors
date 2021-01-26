@@ -2,20 +2,20 @@ package Catalyst::View::Errors::HTML;
 
 use Moose;
 use Text::Template;
-use HTTP::Headers::ActionPack;
+use Catalyst::Utils::ContentNegotiation;
 use Catalyst::Utils::ErrorMessages;
 
 extends 'Catalyst::View';
 with 'Catalyst::Component::ApplicationAttribute';
 
-has text_template_args => (
+has template_engine_args => (
   is=>'ro',
   required=>1,
   lazy=>1,
   default=> sub {
     my $self = shift;
     my $template = $self->_application->config->{root}->file($self->template_name); 
-    my $source = -e $template ? $template->slurp : $self->html;
+    my $source = -e $template ? $template->slurp : $self->html($self->_application);
     return +{TYPE => 'STRING', SOURCE => $source};
   },
 );
@@ -24,6 +24,7 @@ has template_name => (is=>'ro', required=>1, default=>'http_errors.tmpl');
 has default_language => (is=>'ro', required=>1, default=>'en_US');
 
 sub html {
+  my ($self, $app) = @_;
   return q[
 <!DOCTYPE html>
 <html lang="{$lang}">
@@ -45,7 +46,7 @@ has template_engine => (
   init_arg => undef,
   lazy => 1,
   default => sub {
-    my %args = %{shift->text_template_args};
+    my %args = %{shift->template_engine_args};
     my $engine = Text::Template->new(%args);
     $engine->compile;
     return $engine;
@@ -56,7 +57,7 @@ has cn => (
   is => 'ro',
   init_arg => undef,
   required => 1, 
-  default => sub { HTTP::Headers::ActionPack->new->get_content_negotiator },
+  default => sub { Catalyst::Utils::ContentNegotiation::content_negotiator },
 );
 
 sub http_default {
