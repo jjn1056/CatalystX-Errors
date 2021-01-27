@@ -100,11 +100,101 @@ Catalyst::Plugin::Errors - Standard error responses with content negotiation
 
 =head1 SYNOPSIS
 
+Use in your application class
 
+    package Example;
+
+    use Catalyst;
+
+    __PACKAGE__->setup_plugins([qw/Errors/]);
+    __PACKAGE__->setup();
+    __PACKAGE__->meta->make_immutable();
+
+And then you can use it in a controller (or anyplace where you have C<$c> context).
+
+    package Example::Controller::Root;
+
+    use Moose;
+    use MooseX::MethodAttributes;
+
+    extends 'Catalyst::Controller';
+
+    sub root :Chained(/) PathPart('') CaptureArgs(0) {} 
+
+      sub not_found :Chained(root) PathPart('') Args {
+        my ($self, $c, @args) = @_;
+        $c->detach_error(404);
+      }
+
+    __PACKAGE__->config(namespace=>'');
+    __PACKAGE__->meta->make_immutable;
 
 =head1 DESCRIPTION
 
+This is a plugin which installs (if needed) View classes to handle HTTP errors (4xx
+and 5xx codes) in a regular and content negotiated way.  See <CatalystX::Errors>
+for a high level overview.   Documentation here is more API level and the examples
+are sparse.
 
+=head1 METHODS
+
+This plugin adds the following methods to your C<$c> context.
+
+=head2 dispatch_error ($code, ?%args)
+
+Dispatches to an error view based on content negotiation and the provided code.  Any additional
+C<%args> will be passed to the view handler, down to the template so if you have a custom view
+template you can use this to provide custom template parameters.
+
+=head2 detach_error
+
+Calls L</dispatch_error> with the provided arguments and then does a C<$c->detach> which
+effectively ends processing for the action.
+
+=head1 CONFIGURATION & CUSTOMIZATION
+
+This plugin can be customized with the following configuration options or via
+overriding or adapting the following methods
+
+=head2 finalize_error_args
+
+This method provides the actual arguments given to the error view (args which are for
+example used in the template for messaging to the end user).  You can override this
+to provide your own version.   See the source for how this should work
+
+=head2 Configuration keys
+
+This plugin defines the following configuration by default, which you can override.
+
+    package Example;
+
+    use Catalyst;
+
+    __PACKAGE__->setup_plugins([qw/Errors/]);
+    __PACKAGE__->config(
+      # This is the configuration which is default.  You don't have to actually type
+      # this out.  I'm just putting it here to show you what its doing under the hood.
+      'Plugin::Errors' => +{
+        'text/html'   => 'Errors::HTML',
+        'text/plain'  => 'Errors::Text',
+        'application/json' => 'Errors::JSON',
+      },
+    );
+
+    __PACKAGE__->setup();
+    __PACKAGE__->meta->make_immutable();
+
+By default we map the media types C<text/html>, C<text/plain> and C<application/json> to
+cooresponding views.  This views are injected automatically if you don't provide subclasses
+or your own view locally.   The following views are injected as needed:
+
+L<Catalyst::View::Error::HTML>, L<Catalyst::View::Error::Text>, and L<L<Catalyst::View::Error::JSON>.
+
+You can check the docs for each of the default views for customization options but you can always
+make a local subclass inside you application's view directory and tweak as desired (or you can just
+use your own view or one of the common ones on CPAN).
+
+You can also add additional media types mappings.
 
 =head1 SEE ALSO
  

@@ -58,7 +58,8 @@ it converts to a Bad Request and dispatches an error page via C<$c->dispatch_err
 This will give you a servicable http 500 error via content negotiation which you can customize as
 desired (see L<CatalystX::Errors>).
 
-Useful for API work since the default L<Catalyst> error page is in HTML.
+Useful for API work since the default L<Catalyst> error page is in HTML and if your client is requesting
+JSON we'll return a properly formatted response in C<application/json>.
 
 =head1 SEE ALSO
  
