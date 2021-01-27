@@ -113,7 +113,63 @@ Catalyst::View::Errors::HTML - Standard HTTP Errors Responses in HTML
 
 =head1 SYNOPSIS
 
+    package MyApp::View::HTML;
+
+    use Moose;
+    extends 'Catalyst::View::Errors::HTML';
+
+    __PACKAGE__->meta->make_immutable;
+
 =head1 DESCRIPTION
+
+View class for generating error responses.  If you want a lot of customizations you can subclass
+this in your application, or just use your own view.
+
+=head1 METHODS
+
+This view exposes the follow methods for public use or for a programmer to override
+to change function.
+
+=head2 html
+
+Should return a string suitable for L<Text::Template> and is used to generate
+an HTML error response.   This is used if there's no file at C<$APPHOME/root/http_errors_html.tmpl>
+
+=head2 available_languages
+
+An array of the languages available for serving error responses.   By default we use
+L<Catalyst::Utils::ErrorMessages> but if you have your own list of translations you can override
+this.
+
+=head2 get_message_info
+
+Return error message info by code and language.  By default we use
+L<Catalyst::Utils::ErrorMessages> but if you have your own list of translations you can override
+this.
+
+=head2 finalize_message_info
+
+Finalizes the hash of data that is sent to the template handler to make the body of the error
+response.  You can override if you want to change or add to this data.
+
+=head1 CONFIGURATION
+
+This View exposes the following configuration options
+
+=head2 template_engine_args
+
+Args that are used to start the L<Text::Template> template engin
+
+=head2 template_name
+
+Name of the files under $APPHOME/root that is used to render an error view.
+Default is C<http_errors_html.tmpl>.   If this this file doesn't exist we 
+instead use the return of L</html> method for the template string.
+
+=head2 default_language
+
+When doing content negotiation if there's no language preferred by the client
+use this language.   Default is C<en_US>.
 
 =head1 SEE ALSO
  

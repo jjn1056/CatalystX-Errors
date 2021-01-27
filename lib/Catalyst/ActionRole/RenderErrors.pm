@@ -1,19 +1,52 @@
 package Catalyst::ActionRole::RenderErrors;
 
 use Moose::Role;
-  
+use Scalar::Util 'blessed';
+
+my $dont_dispatch_error = sub {
+  my ($self, $controller, $c) = @_;
+  return 1 if $c->debug;
+  return 1 if $c->req->method eq 'HEAD';
+  return 1 if defined $c->response->body;
+  return 1 if $c->response->status =~ /^(?:204|3\d\d)$/;
+  return 1 if @{$c->error};
+  return 0;
+};
+
+my $looks_like_error_obj = sub {
+  my ($self, $obj) = @_;
+  return (blessed($obj) && ($obj->can('code') || $obj->can('status'))) ? 1:0;
+};
+
+my $normalize_code = sub {
+  my ($self, $obj) = @_;
+  my $code = $obj->can('code') ? $obj->code : $obj->status;
+  return $code;
+};
+
+my $finalize_args = sub {
+  my ($self, $obj) = @_;
+  my %args = ();
+  $args{meta} = $obj->meta if $obj->can('meta');
+  $args{errors} = $obj->errors if $obj->can('errors');
+  return %args;
+};
+
 around 'execute', sub {
   my ($orig, $self, $controller, $c, @args) = @_;
   my $ret = $self->$orig($controller, $c, @args);
+  
+  return $ret if $self->$dont_dispatch_error($controller, $c);
 
-  return $ret if $c->debug;
-  return $ret if $c->req->method eq 'HEAD';
-  return $ret if defined $c->response->body;
-  return $ret if $c->response->status =~ /^(?:204|3\d\d)$/;
+  my @errors = @{$c->error};
+  $c->clear_errors;
 
-  if(my @errors = @{$c->error}) {
-    $c->clear_errors;
-    $c->dispatch_error(500, errors=>\@errors);
+  if($self->$looks_like_error_obj(my $first = $errors[0])) {
+    my $code = $self->$normalize_code($first);
+    my %args = $self->$finalize_args($first);      
+    $c->dispatch_error($code, %args);
+  } else {
+    $c->dispatch_error(500);
   }
 
   return $ret;
@@ -57,6 +90,11 @@ this just passes the errors down to the default L<Catalyst> debugging error resp
 it converts to a Bad Request and dispatches an error page via C<$c->dispatch_error(500, errors=>\@errors)>.
 This will give you a servicable http 500 error via content negotiation which you can customize as
 desired (see L<CatalystX::Errors>).
+
+If the first error in  C<$c->error> is an object that does either C<code> or C<status> then we use that
+error to get the HTTP status code and any additional C<meta> or C<errors> arguments (if those methods
+exist on the object.  If its not then we just return a simple HTTP 500 Bad request.  In that case we
+won't return any information in C<$c->error> since that might leack contain Perl debugging info.
 
 Useful for API work since the default L<Catalyst> error page is in HTML and if your client is requesting
 JSON we'll return a properly formatted response in C<application/json>.

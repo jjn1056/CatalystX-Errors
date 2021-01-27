@@ -82,7 +82,7 @@ sub dispatch_error {
   } elsif($view_obj->can('http_default')) {
     $view_obj->http_default($c, $code, %args);
   } else {
-    $c->forward($view_obj);
+    $c->forward($view_obj, \%args);
   }
 }
 
@@ -145,6 +145,18 @@ This plugin adds the following methods to your C<$c> context.
 Dispatches to an error view based on content negotiation and the provided code.  Any additional
 C<%args> will be passed to the view handler, down to the template so if you have a custom view
 template you can use this to provide custom template parameters.
+
+When dispatching to a C<$view> we use the following rules in order:
+
+First if the View has a method C<http_${code}> (where C<$code> is the HTTP status code you are 
+using for the error) we call that method with args C<$c, %args> and expect that method to setup
+a valid error response.
+
+Second, when call the method C<http_default> with args C<$c, $code, %args> if that exists.
+
+If neither method exists we call C<$c->forward($view)> and C<%args> are added to the stash, along
+with a stash field 'template' which is set to the error $code.   This should work with most
+standard L<Catalyst> views that look at the stash field 'template' to find a template name.
 
 =head2 detach_error
 

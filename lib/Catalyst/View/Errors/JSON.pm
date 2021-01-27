@@ -89,7 +89,111 @@ Catalyst::View::Errors::JSON - Standard HTTP Errors Responses in JSON
 
 =head1 SYNOPSIS
 
+    package MyApp::View::JSON;
+
+    use Moose;
+    extends 'Catalyst::View::Errors::JSON';
+
+    __PACKAGE__->meta->make_immutable;
+
 =head1 DESCRIPTION
+
+Used to generate a JSON error response in standard way.
+
+=head1 METHODS
+
+This view exposes the follow methods for public use or for a programmer to override
+to change function.
+
+=head2 available_languages
+
+An array of the languages available for serving error responses.   By default we use
+L<Catalyst::Utils::ErrorMessages> but if you have your own list of translations you can override
+this.
+
+=head2 get_message_info
+
+Return error message info by code and language.  By default we use
+L<Catalyst::Utils::ErrorMessages> but if you have your own list of translations you can override
+this.
+
+=head2 finalize_message_info
+
+Finalizes the hash of data that is sent to the template handler to make the body of the error
+response.  You can override if you want to change or add to this data.
+
+By default you get an error message that looks like this:
+
+    {
+       "meta" : {
+          "lang" : "en_US",
+          "uri" : "http://localhost:5000/"
+       },
+       "errors" : [
+          {
+             "title" : "Resource not found",
+             "description" : "The requested resource could not be found but may be available again in the future.",
+             "status" : 404
+          }
+       ]
+    }
+
+When dispatching an error you can add to the C<meta> and C<errors> keys by passing information
+via the arguments to C<$c->dispatch_error>.   For example:
+
+    $c->dispatch_error(400 =>
+      meta => { error_count = 2 },
+      errors => [
+        {
+          field => 'name',
+          message => 'too short',
+        },
+      errors => [
+        {
+          field => 'age',
+          message => 'too young',
+        },
+      ],
+    );
+
+Will result in:
+
+    {
+       "meta" : {
+          "lang" : "en_US",
+          "uri" : "http://localhost:5000/"
+       },
+       "errors" : [
+          {
+             "title" : "Resource not found",
+             "description" : "The requested resource could not be found but may be available again in the future.",
+             "status" : 404
+          },
+          {
+             "field" : "name",
+             "message" : "too short",
+          },
+          {
+             "field" : "age",
+             "message" : "too old",
+          }
+       ]
+    }
+
+If you want a different error setup you'll need to override this method to do as you wish.    
+
+=head1 CONFIGURATION
+
+This View exposes the following configuration options
+
+=head2 extra_encoder_args
+
+Extra args used to initialize the L<JSON::MaybeXS> object.
+
+=head2 default_language
+
+When doing content negotiation if there's no language preferred by the client
+use this language.   Default is C<en_US>.
 
 =head1 SEE ALSO
  
