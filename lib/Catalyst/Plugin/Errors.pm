@@ -94,7 +94,7 @@ sub detach_error {
 
 __PACKAGE__->meta->make_immutable;
 
-=head1 TITLE
+=head1 NAME
 
 Catalyst::Plugin::Errors - Standard error responses with content negotiation
 

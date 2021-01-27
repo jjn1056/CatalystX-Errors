@@ -83,7 +83,7 @@ sub render_json {
 
 __PACKAGE__->meta->make_immutable;
 
-=head1 TITLE
+=head1 NAME
 
 Catalyst::View::Errors::JSON - Standard HTTP Errors Responses in JSON
 

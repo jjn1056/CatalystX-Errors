@@ -107,7 +107,7 @@ sub render_template {
 
 __PACKAGE__->meta->make_immutable;
 
-=head1 TITLE
+=head1 NAME
 
 Catalyst::View::Errors::HTML - Standard HTTP Errors Responses in HTML
 

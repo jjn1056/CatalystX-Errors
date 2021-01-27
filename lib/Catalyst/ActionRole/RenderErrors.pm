@@ -54,7 +54,7 @@ around 'execute', sub {
  
 1;
 
-=head1 TITLE
+=head1 NAME
 
 Catalyst::ActionRole::RenderErrors - Automatically return an error page
 

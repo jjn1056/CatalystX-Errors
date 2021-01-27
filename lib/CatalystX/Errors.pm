@@ -1,11 +1,11 @@
 package CatalystX::Errors;
 
-our $VERSION = '0.001001';
+our $VERSION = '0.001002';
 $VERSION = eval $VERSION;
  
 1;
 
-=head1 TITLE
+=head1 NAME
 
 CatalystX::Errors - Standard error handling with content negotiation
 

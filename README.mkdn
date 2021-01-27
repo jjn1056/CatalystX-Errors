@@ -1,4 +1,4 @@
-# TITLE
+# NAME
 
 CatalystX::Errors - Standard error handling with content negotiation
 

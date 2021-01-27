@@ -301,7 +301,7 @@ sub get_message_info {
 
 1;
 
-=head1 TITLE
+=head1 NAME
 
 Catalyst::Utils::ErrorMessages - HTTP error message data in various languages
 

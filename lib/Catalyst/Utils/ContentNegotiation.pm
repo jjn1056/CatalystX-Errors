@@ -6,7 +6,7 @@ sub content_negotiator { our $cn ||= HTTP::Headers::ActionPack->new->get_content
 
 1;
 
-=head1 TITLE
+=head1 NAME
 
 Catalyst::Utils::ContentNegotiation - Global Content Negotiation object
 
