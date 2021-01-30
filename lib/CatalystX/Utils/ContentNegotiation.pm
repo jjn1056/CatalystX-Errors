@@ -1,4 +1,4 @@
-package Catalyst::Utils::ContentNegotiation;
+package CatalystX::Utils::ContentNegotiation;
 
 use HTTP::Headers::ActionPack;
 
@@ -8,11 +8,11 @@ sub content_negotiator { our $cn ||= HTTP::Headers::ActionPack->new->get_content
 
 =head1 NAME
 
-Catalyst::Utils::ContentNegotiation - Global Content Negotiation object
+CatalystX::Utils::ContentNegotiation - Global Content Negotiation object
 
 =head1 SYNOPSIS
 
-  use Catalyst::Utils::ContentNegotiation;
+  use CatalystX::Utils::ContentNegotiation;
 
 =head1 DESCRIPTION
 

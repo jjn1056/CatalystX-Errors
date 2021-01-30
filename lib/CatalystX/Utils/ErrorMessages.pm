@@ -1,4 +1,4 @@
-package Catalyst::Utils::ErrorMessages;
+package CatalystX::Utils::ErrorMessages;
 
 use strict;
 use warnings;
@@ -303,11 +303,11 @@ sub get_message_info {
 
 =head1 NAME
 
-Catalyst::Utils::ErrorMessages - HTTP error message data in various languages
+CatalystX::Utils::ErrorMessages - HTTP error message data in various languages
 
 =head1 SYNOPSIS
 
-  use Catalyst::Utils::ErrorMessages
+  use CatalystX::Utils::ErrorMessages
 
 =head1 DESCRIPTION
 
