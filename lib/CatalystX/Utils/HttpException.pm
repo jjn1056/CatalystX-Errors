@@ -12,16 +12,17 @@ has 'errors' => (is=>'ro', isa=>'ArrayRef', lazy=>1, required=>1, default=>sub {
 sub import {
   my $class = shift;
   my $target = caller;
+  unless($target->can('throw_http')) {
+    eval qq[
+      package $target;
+      use Carp;
 
-  eval qq[
-    package $target;
-    use Carp;
-
-    sub throw_http {
-      my (\$status, \%args) = \@_;
-      croak \$class->new(\%args, status => \$status);
-    }
-  ];
+      sub throw_http {
+        my (\$status, \%args) = \@_;
+        croak \$class->new(\%args, status => \$status);
+      }
+    ];
+  }
 }
 
 sub as_string {
