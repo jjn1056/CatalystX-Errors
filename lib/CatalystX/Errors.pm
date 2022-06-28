@@ -59,6 +59,15 @@ doesn't have a ton of test cases and I reserve the right to make breaking change
 better paradigm for this use case emerge.  You should review the docs for each class in
 this distribution for more info.
 
+You should see the plugin for API method documentation: L<Catalyst::Plugin::Errors>.
+
+B<NOTE>: The use case this is aimed at is proper handling of HTTP exception conditions resulting
+from the actual HTTP routing and negotiation (page not found, not authorized, etc) and for
+wrapping up any server side expections that get generated unexpectedly (such as data issues).
+I don't really intend this to return error responses for something like invalid HTML forms for
+example (althought you can use it for something like returning a generic 'bad request' in
+response to an invalidly formed POST (such as an invalid CSRF token)).
+
 =head1 EXCEPTION CLASSES
 
 There are times when you need to throw an exception that should be properly interpreted at

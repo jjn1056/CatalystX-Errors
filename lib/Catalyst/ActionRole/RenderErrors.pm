@@ -14,13 +14,26 @@ my $dont_dispatch_error = sub {
 
 my $looks_like_error_obj = sub {
   my ($self, $obj) = @_;
-  return (blessed($obj) && ($obj->can('code') || $obj->can('status'))) ? 1:0;
+  return (
+    blessed($obj) && (
+      $obj->can('status_code') || 
+      $obj->can('code') || 
+      $obj->can('status')
+    )
+  ) ? 1:0;
 };
 
 my $normalize_code = sub {
   my ($self, $obj) = @_;
-  my $code = $obj->can('code') ? $obj->code : $obj->status;
-  return $code;
+  return $obj->status_code if $obj->can('status_code');
+  return $obj->code if $obj->can('code');
+  return $obj->status if $obj->can('status');
+  return 500;
+};
+
+my $find_additional_headers = sub {
+  my ($self, $obj) = @_;
+  return $obj->additional_headers if $obj->can('additional_headers');
 };
 
 my $finalize_args = sub {
@@ -38,17 +51,20 @@ around 'execute', sub {
   return $ret if $self->$dont_dispatch_error($controller, $c);
 
   my @errors = @{$c->error};
-  my $first = $errors[-1]; # We only handle the last error in the stack
-  $c->clear_errors;
+  my $first = $errors[-1]; # We can only handle the last error in the stack
+
+  return $ret unless $first;
 
   if($self->$looks_like_error_obj($first)) {
+    $c->clear_errors;
     my $code = $self->$normalize_code($first);
+    my @additional_headers = $self->$find_additional_headers($first);
     my %args = $self->$finalize_args($first);
     $c->log->error($first);
-    $c->dispatch_error($code, %args);
+    $c->dispatch_error($code, \@additional_headers, \%args) unless ($c->debug && ($code >= 500));
   } else {
     $c->log->error($first);
-    $c->dispatch_error(500);
+    $c->dispatch_error(500) unless $c->debug;
   }
 
   return $ret;

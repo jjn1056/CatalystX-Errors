@@ -5,9 +5,21 @@ use Carp;
 
 with 'Catalyst::Exception::Interface';
 
+# status_code, errors, addtional_headers, ?message
+
 has 'info' => (is=>'ro', predicate=>'has_info');
 has 'status' => (is=>'ro', isa=>'Int', lazy=>1, required=>1, default=>sub { 500 } );
 has 'errors' => (is=>'ro', isa=>'ArrayRef', lazy=>1, required=>1, default=>sub {['The system has generated unspecifed errors.']} );
+
+sub errorsxx {
+  my $self = shift;
+  return 'The system has generated unspecifed errors.';
+}
+
+sub additional_headers {
+  my $self = shift;
+  return ();
+}
 
 sub import {
   my $class = shift;

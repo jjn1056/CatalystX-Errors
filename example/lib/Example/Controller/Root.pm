@@ -6,6 +6,11 @@ package Example::Controller::Root;
   use Moose;
   extends 'CatalystX::Utils::HttpException';
 
+  sub http_response {
+    my $self = shift;
+    return 500, [], \@errors;
+  }
+
   has '+status' => (init_arg=>undef, default=>sub {418});
   has '+errors' => (init_arg=>undef, default=>sub { ["Coffee not allowed! Also: @{[ $_[0]->special_param ]}"] });
   has special_param => (is=>'ro', required=>1);
@@ -24,7 +29,7 @@ sub root :Chained(/) PathPart('') CaptureArgs(0) {}
 
   sub not_found :Chained(root) PathPart('') Args {
     my ($self, $c, @args) = @_;
-    $c->detach_error(404);
+    $c->detach_error(404, +{aaa=>111});
   }
 
   sub die :Chained(root) PathPart(die) Args(0) {
