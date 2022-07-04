@@ -5,7 +5,6 @@ use Scalar::Util 'blessed';
 
 my $dont_dispatch_error = sub {
   my ($self, $controller, $c) = @_;
-  return 1 if $c->debug;
   return 1 if $c->req->method eq 'HEAD';
   return 1 if defined $c->response->body;
   return 1 if $c->response->status =~ /^(?:204|3\d\d)$/;
@@ -14,34 +13,7 @@ my $dont_dispatch_error = sub {
 
 my $looks_like_error_obj = sub {
   my ($self, $obj) = @_;
-  return (
-    blessed($obj) && (
-      $obj->can('status_code') || 
-      $obj->can('code') || 
-      $obj->can('status')
-    )
-  ) ? 1:0;
-};
-
-my $normalize_code = sub {
-  my ($self, $obj) = @_;
-  return $obj->status_code if $obj->can('status_code');
-  return $obj->code if $obj->can('code');
-  return $obj->status if $obj->can('status');
-  return 500;
-};
-
-my $find_additional_headers = sub {
-  my ($self, $obj) = @_;
-  return $obj->additional_headers if $obj->can('additional_headers');
-};
-
-my $finalize_args = sub {
-  my ($self, $obj) = @_;
-  my %args = ();
-  $args{info} = $obj->info if $obj->can('info');
-  $args{errors} = $obj->errors if $obj->can('errors');
-  return %args;
+  return blessed($obj) && $obj->can('as_http_response') ? 1:0;
 };
 
 around 'execute', sub {
@@ -54,17 +26,14 @@ around 'execute', sub {
   my $first = $errors[-1]; # We can only handle the last error in the stack
 
   return $ret unless $first;
+  $c->log->error($first);
 
   if($self->$looks_like_error_obj($first)) {
-    $c->clear_errors;
-    my $code = $self->$normalize_code($first);
-    my @additional_headers = $self->$find_additional_headers($first);
-    my %args = $self->$finalize_args($first);
-    $c->log->error($first);
-    $c->dispatch_error($code, \@additional_headers, \%args) unless ($c->debug && ($code >= 500));
+    my ($status_code, $additional_headers, $template_args) = $first->as_http_response;
+    $c->clear_errors && $c->dispatch_error($status_code, $additional_headers, $template_args)
+      unless ($c->debug && ($status_code >= 500));
   } else {
-    $c->log->error($first);
-    $c->dispatch_error(500) unless $c->debug;
+    $c->clear_errors && $c->dispatch_error(500) unless $c->debug;
   }
 
   return $ret;

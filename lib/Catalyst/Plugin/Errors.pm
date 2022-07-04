@@ -4,7 +4,6 @@ use Moose;
 use MRO::Compat;
 use CatalystX::Utils::ContentNegotiation;
 use CatalystX::Utils::ErrorMessages;
-use CatalystX::Utils::HttpException;
 use Catalyst::Utils;
 
 our %DEFAULT_ERROR_VIEWS = (
@@ -121,6 +120,7 @@ sub dispatch_error {
     ||  $default_media_type;
 
   $c->log->debug("Error dispatched to mediatype '$chosen_media_type' using view '$views{$chosen_media_type}'") if $c->debug;
+  $c->log->error($data{error}) if exists($data{error});
 
   my $chosen_view = $views{$chosen_media_type};
   my $view_class = ref($c) . "::View::${chosen_view}";
@@ -215,6 +215,10 @@ If neither method exists we call C<$c->forward($view)> and C<%template_args> are
 with a stash var 'template' which is set to 'http_error'. This should work with most standard L<Catalyst> 
 views that look at the stash field 'template' to find a template name.  If you  prefer a different template
 name you can override the method 'generate_error_template_name' to make it whatever you wish.
+
+B<NOTE> Using C<dispatch_error> (or C<detach_error>) doesn't add anything to the Catalyst error log
+as we consider this control flow more than anything else.   If you want to log a special line you can
+add an C<error> field to C<%template_args> and that we go to the error log.
 
 =head2 detach_error
 

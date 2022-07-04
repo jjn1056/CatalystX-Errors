@@ -4,16 +4,21 @@ package Example::Controller::Root;
   package MyApp::Exception::Custom;
 
   use Moose;
-  extends 'CatalystX::Utils::HttpException';
+  with 'CatalystX::Utils::DoesHttpException';
 
-  sub http_response {
-    my $self = shift;
-    return 500, [], \@errors;
+  has special_param => (is=>'ro', required=>1);
+
+  sub status_code { 418 }
+
+  sub additional_headers {
+    return [
+      'X-version' => '1.001',
+    ];
   }
 
-  has '+status' => (init_arg=>undef, default=>sub {418});
-  has '+errors' => (init_arg=>undef, default=>sub { ["Coffee not allowed! Also: @{[ $_[0]->special_param ]}"] });
-  has special_param => (is=>'ro', required=>1);
+  sub error {
+    return "Coffee not allowed! Also: @{[ $_[0]->special_param ]}"
+  }
 
   __PACKAGE__->meta->make_immutable;
 }
@@ -29,7 +34,7 @@ sub root :Chained(/) PathPart('') CaptureArgs(0) {}
 
   sub not_found :Chained(root) PathPart('') Args {
     my ($self, $c, @args) = @_;
-    $c->detach_error(404, +{aaa=>111});
+    $c->detach_error(404, +{aaa=>111, error=>"Path '@{[ join '/', @args ]}' not found"});
   }
 
   sub die :Chained(root) PathPart(die) Args(0) {
@@ -37,7 +42,11 @@ sub root :Chained(/) PathPart('') CaptureArgs(0) {}
   }
 
   sub throw :Chained(root) PathPart(throw) Args(0) {
-    throw_http 400, errors=>[1,2,3],  
+    throw_http 400, error=>'one',  
+  }
+
+  sub server_error :Chained(root) PathPart(server_error) Args(0) {
+    throw_http 500, error=>'one',  
   }
 
   sub teapot :Chained(root) PathPart(teapot) Args(0) {
