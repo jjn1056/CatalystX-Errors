@@ -25,7 +25,7 @@ package Example::Controller::Root;
 
 use Moose;
 use MooseX::MethodAttributes;
-use CatalystX::Utils::HttpException;
+use CatalystX::Utils::HttpException 'throw_http';
 use MyApp::Exception::Custom;
 
 extends 'Catalyst::Controller';

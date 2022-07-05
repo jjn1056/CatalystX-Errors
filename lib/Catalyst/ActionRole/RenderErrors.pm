@@ -1,7 +1,6 @@
 package Catalyst::ActionRole::RenderErrors;
 
 use Moose::Role;
-use Scalar::Util 'blessed';
 
 my $dont_dispatch_error = sub {
   my ($self, $controller, $c) = @_;
@@ -11,24 +10,18 @@ my $dont_dispatch_error = sub {
   return 0;
 };
 
-my $looks_like_error_obj = sub {
-  my ($self, $obj) = @_;
-  return blessed($obj) && $obj->can('as_http_response') ? 1:0;
-};
-
 around 'execute', sub {
   my ($orig, $self, $controller, $c, @args) = @_;
   my $ret = $self->$orig($controller, $c, @args);
 
   return $ret if $self->$dont_dispatch_error($controller, $c);
 
-  my @errors = @{$c->error};
+  my @errors = @{$c->error} || return $ret;
   my $first = $errors[-1]; # We can only handle the last error in the stack
 
-  return $ret unless $first;
   $c->log->error($first);
 
-  if($self->$looks_like_error_obj($first)) {
+  if($c->looks_like_http_error_obj($first)) {
     my ($status_code, $additional_headers, $template_args) = $first->as_http_response;
     $c->clear_errors && $c->dispatch_error($status_code, $additional_headers, $template_args)
       unless ($c->debug && ($status_code >= 500));
@@ -72,19 +65,18 @@ Catalyst::ActionRole::RenderErrors - Automatically return an error page
   
 =head1 DESCRIPTION
 
-Handles any uncaught errors (defined as "there's something in C<$c->errors>").  If in Debug mode
-this just passes the errors down to the default L<Catalyst> debugging error response.  Otherwise
-it converts to a Bad Request and dispatches an error page via C<$c->dispatch_error(500, errors=>\@errors)>.
-This will give you a servicable http 500 error via content negotiation which you can customize as
-desired (see L<CatalystX::Errors>).
+Tries to convert the last error in '$c->error' to something we can dispatch an error view too.
 
-If the first error in  C<$c->error> is an object that does either C<code> or C<status> then we use that
-error to get the HTTP status code and any additional C<info> or C<errors> arguments (if those methods
-exist on the object.  If its not then we just return a simple HTTP 500 Bad request.  In that case we
-won't return any information in C<$c->error> since that might leack contain Perl debugging info.
+If the first error in  '$c->error' is an object that looks like it does L<CatalystX::Utils::DoesHttpException>
+then we use that error to get the HTTP status code and any additional arguments.  If its not then we just return 
+a simple HTTP 500 Bad request.  In that case we  won't return any information in C<$c->error> since that might leak
+sensitiver Perl debugging info.   A stringified version of the error is sent to the error log.
 
 Useful for API work since the default L<Catalyst> error page is in HTML and if your client is requesting
 JSON we'll return a properly formatted response in C<application/json>.
+
+B<NOTE> if you are in CATALYST_DEBUG mode then all HTTP 500 errors and non specific errors will still 
+dump the development debugging error screen.
 
 =head1 SEE ALSO
  

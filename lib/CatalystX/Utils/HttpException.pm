@@ -7,17 +7,21 @@ with 'CatalystX::Utils::DoesHttpException';
 
 sub import {
   my $class = shift;
+  my @imports = @_;
   my $target = caller;
-  unless($target->can('throw_http')) {
-    eval qq[
-      package $target;
-      use Carp;
 
-      sub throw_http {
-        my (\$status, \%args) = \@_;
-        croak \$class->new(\%args, status_code => \$status);
-      }
-    ];
+  foreach my $import_sub (@imports) {
+    if( ($import_sub eq 'throw_http') && (!$target->can('throw_http')) ) {
+        eval qq[
+          package $target;
+          use Carp;
+
+          sub throw_http {
+            my (\$status, \%args) = \@_;
+            croak \$class->new(\%args, status_code => \$status);
+          }
+        ];
+    }
   }
 }
 
@@ -29,7 +33,7 @@ CatalystX::Utils::HttpException - A basic way to throw exceptions
 
 =head1 SYNOPSIS
 
-  use CatalystX::Utils::HttpException;
+  use CatalystX::Utils::HttpException 'throw_http';
 
   throw_http $code, %extra;
 

@@ -78,6 +78,7 @@ CatalystX::Utils::DoesHttpException - An exception role
 
   sub status_code { 418 }
   sub error { 'Coffee not allowed' }
+  sub additional_headers { [ 'X-Error-Code' => '200101' ] }
 
 =head1 DESCRIPTION
 
@@ -111,12 +112,6 @@ This is a string which is the text version of the error.  This is not seen by th
 goes to whatever you have handling the L<Catalyst> error log ($c->log->error($err)).  Default is text
 'The system has generated unspecifed errors.'.
 
-=item message
-
-This is optional.  This is the message that gets sent to the client as part of the response.  If you
-don't set this field then L<CatalystX::Errors> will use whatever the standard text of the error message
-is for the C<status_code> you set.
-
 =item additional_headers
 
 This is an arrayref of key / value pairs which are extra HTTP headers that wil be sent to the client.
@@ -124,7 +119,46 @@ Some HTTP error codes have required HTTP headers (like 401 Unauthorized should r
 header that tells the client how to authenticate).  Otherwise an optional field which just returns an
 empty arrayref.
 
+=item message
+
+This is optional.  This is the message that gets sent to the client as part of the response.  If you
+don't set this field then L<CatalystX::Errors> will use whatever the standard text of the error message
+is for the C<status_code> you set via L<CatalystX::Utils::ErrorMessages>.  You can override if you prefer
+to control the error message yourself (or just write a custom view).
+
+Remember if you choose to write a custom message you need to take care to properly scrub / HTML escape
+any data that is coming from the client before using it in the response, else you are opening a HTML /
+Javascript injection attack in your system.
+
 =back
+
+=head1 EXAMPLE
+
+A more detailed example:
+
+    package Catalyst::ActionRole::Verbs::Utils::MethodNotAllowed;
+     
+    use Moose;
+    use namespace::clean -except => 'meta';
+      
+    with 'CatalystX::Utils::DoesHttpException';
+    
+    has resource => (is=>'ro', required=>1);
+    has allowed_methods => (is=>'ro', isa=>'ArrayRef[Str]', required=>1);
+    has attempted_method => (is=>'ro', isa=>'Str', required=>1);
+
+    sub status { 405 }
+    sub error { "invalid method '@{[ $_[0]->attempted_method ]}' }
+    sub message {
+      "HTTP Method '@{[ $_[0]->attempted_method ]}' not permitted for resource '@{[ $_[0]->resource ]}'." .
+      "Can only be: @{[ join ', ', @{$_[0]->allowed_methods||[]} ]}";
+    );
+     
+    __PACKAGE__->meta->make_immutable;
+
+In this case the user would get a 405 error and the error will go to the error logs for tracking while the
+more detailed 'message' would return to the user.  Please note that you should scrub the values of 'allowed_methods'
+since that's coming from the client and could be used as a type of HTML / Javascript injection attack.
 
 =head1 SEE ALSO
  

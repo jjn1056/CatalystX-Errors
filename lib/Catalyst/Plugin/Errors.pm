@@ -5,6 +5,7 @@ use MRO::Compat;
 use CatalystX::Utils::ContentNegotiation;
 use CatalystX::Utils::ErrorMessages;
 use Catalyst::Utils;
+use Scalar::Util ();
 
 our %DEFAULT_ERROR_VIEWS = (
   'text/html'   => 'Errors::HTML',
@@ -66,7 +67,12 @@ sub finalize_error_args {
     uri => "@{[ $c->req->uri ]}",
     %message_info );
 }
- 
+
+sub looks_like_http_error_obj {
+  my ($self, $obj) = @_;
+  return Scalar::Util::blessed($obj) && $obj->can('as_http_response') ? 1:0;
+}
+
 sub setup {
   my $app = shift;
   my $ret = $app->maybe::next::method(@_);
