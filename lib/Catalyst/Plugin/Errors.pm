@@ -205,6 +205,12 @@ This plugin adds the following methods to your C<$c> context.
 
 =head2 dispatch_error ($code, ?\@additional_headers, ?\%template_args)
 
+Examples:
+
+    $c->detach_error(404);
+    $c->detach_error(404, +{error=>'invalid uri request'});
+    $c->detach_error(401, ['WWW-Authenticate" => 'Basic realm=myapp, charset="UTF-8"'], +{error=>'unauthorized access attempt'});
+
 Dispatches to an error view based on content negotiation and the provided code. You can also pass
 an arrayref of extra HTTP headers (such as www-authenticate for 401 errors) and also optionally
 a hashref of fields that will be sent to the view.
